@@ -8,8 +8,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PostMapping;
 
+import java.sql.Date;
+import java.sql.Time;
 import java.util.List;
+import java.util.UUID;
 
 @Controller
 public class CitaController implements ICita {
@@ -19,11 +23,25 @@ public class CitaController implements ICita {
 
     @Override
     public ResponseEntity<List<Cita>> getAllCitas() {
-        return ResponseEntity.status(HttpStatus.OK).body(citaService.getAllCitas());
+        List<Cita> citas = citaService.getAllCitas();
+
+        return ResponseEntity.status(HttpStatus.OK).body(citas);
+    }
+
+    @Override
+    public ResponseEntity<List<Cita>> getFilteredCitas(Date dia, Time horaInicio, Time horaFinal, UUID pacienteId, UUID especialistaId, UUID servicioId, Boolean pagado) {
+        List<Cita> citas = citaService.getFilteredCitas(dia, horaInicio, horaFinal, pacienteId, especialistaId, servicioId, pagado);
+        return ResponseEntity.status(HttpStatus.OK).body(citas);
     }
 
     @Override
     public ResponseEntity<List<CitaDTO>> getAllCitasDTO() {
         return ResponseEntity.status(HttpStatus.OK).body(citaService.getAllCitasDTO());
+    }
+
+    @Override
+    public ResponseEntity<Void> deleteLogicalDeletedCitas() {
+        citaService.deleteLogicalDeletedCitas();
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 }

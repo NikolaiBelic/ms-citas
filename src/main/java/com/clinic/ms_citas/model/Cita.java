@@ -100,4 +100,18 @@ public class Cita {
     public void setPagado(Boolean pagado) {
         this.pagado = pagado;
     }
+
+    @Override
+    public String toString() {
+        return "Cita{" +
+                "id=" + id +
+                ", dia=" + dia +
+                ", horaInicio=" + horaInicio +
+                ", horaFinal=" + horaFinal +
+                ", pacienteId=" + pacienteId +
+                ", especialistaId=" + especialistaId +
+                ", servicioId=" + servicioId +
+                ", pagado=" + pagado +
+                '}';
+    }
 }
