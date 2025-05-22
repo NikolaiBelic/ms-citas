@@ -20,7 +20,6 @@ public class Especialista {
     private String apellidos;
 
     @Column(name = "DNI", nullable = false, unique = true, length = 9)
-    @JsonIgnore
     private String dni;
 
     @Column(name = "ESPECIALIDAD", nullable = false)

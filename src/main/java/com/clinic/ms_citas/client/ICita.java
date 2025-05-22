@@ -51,6 +51,12 @@ public interface ICita {
     @PostMapping("/create")
     public ResponseEntity<Cita> createCita(@RequestBody String jsonCita);
 
+    @PutMapping("/update")
+    public ResponseEntity<Cita> updateCita(@RequestBody String jsonCita);
+
+    @PatchMapping("/soft-delete")
+    public ResponseEntity<Void> softDeleteCitas(@RequestBody Map<String, Object> citas);
+
     @DeleteMapping("/delete-logical")
     public ResponseEntity<Void> deleteLogicalDeletedCitas();
 }

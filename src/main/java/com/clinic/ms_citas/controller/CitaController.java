@@ -60,6 +60,20 @@ public class CitaController implements ICita {
         return ResponseEntity.status(HttpStatus.CREATED).body(c);
     }
 
+    public ResponseEntity<Cita> updateCita(@RequestBody String jsonCita) {
+        Cita cita = gson.fromJson(jsonCita, Cita.class);
+        Cita c = citaService.updateCita(cita);
+        return ResponseEntity.status(HttpStatus.CREATED).body(c);
+    }
+
+    @Override
+    public ResponseEntity<Void> softDeleteCitas(Map<String, Object> citas) {
+        List<UUID> ids = (List<UUID>) citas.get("ids");
+        String deletedBy = (String) citas.get("deletedBy");
+        citaService.softDeleteCitas(ids, deletedBy);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    }
+
     @Override
     public ResponseEntity<List<Cita>> getFilteredCitas(Date dia, Time horaInicio, Time horaFinal, UUID pacienteId, UUID especialistaId, UUID servicioId, Boolean pagado) {
         List<Cita> citas = citaService.getFilteredCitas(dia, horaInicio, horaFinal, pacienteId, especialistaId, servicioId, pagado);

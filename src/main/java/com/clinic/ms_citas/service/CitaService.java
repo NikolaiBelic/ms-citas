@@ -34,8 +34,23 @@ public class CitaService {
     @PersistenceContext
     private EntityManager entityManager;
 
-    public List<Cita> getAllCitas () {
-        return citaRepository.getAllCitas();
+    public List<Cita> getAllCitas() {
+        List<Cita> citas = citaRepository.getAllCitas();
+
+        // Inicializar relaciones lazy
+        citas.forEach(cita -> {
+            if (cita.getPaciente() != null) {
+                Hibernate.initialize(cita.getPaciente());
+            }
+            if (cita.getEspecialista() != null) {
+                Hibernate.initialize(cita.getEspecialista());
+            }
+            if (cita.getServicio() != null) {
+                Hibernate.initialize(cita.getServicio());
+            }
+        });
+
+        return citas;
     }
 
     public List<Cita> findCitasByFiltro(String trackingId, int page, int size, Map<String, Object> filtros) {
@@ -188,10 +203,63 @@ public class CitaService {
             cita.setServicio(entityManager.getReference(Servicio.class, cita.getServicio().getId()));
         }
 
+        if (cita.getHoraInicio() != null) {
+            cita.setHoraInicio(normalizeTime(cita.getHoraInicio()));
+        }
+        if (cita.getHoraFinal() != null) {
+            cita.setHoraFinal(normalizeTime(cita.getHoraFinal()));
+            System.out.println(normalizeTime(cita.getHoraFinal()));
+        }
+
+
         cita.setCreateTs(ajustarFechaAEspana(cita.getCreateTs()));
         cita.setUpdateTs(ajustarFechaAEspana(cita.getUpdateTs()));
 
         return citaRepository.save(cita);
+    }
+
+    @Transactional
+    public Cita updateCita(Cita cita) {
+        if (cita.getPaciente() != null) {
+            if (cita.getPaciente().getId() == null) {
+                throw new IllegalArgumentException("El paciente debe tener un ID válido para ser vinculado a la cita.");
+            }
+            // Asociar el paciente existente
+            cita.setPaciente(entityManager.getReference(Paciente.class, cita.getPaciente().getId()));
+        }
+
+        if (cita.getEspecialista() != null) {
+            if (cita.getEspecialista().getId() == null) {
+                throw new IllegalArgumentException("El especialista debe tener un ID válido para ser vinculado a la cita.");
+            }
+            // Asociar el especialista existente
+            cita.setEspecialista(entityManager.getReference(Especialista.class, cita.getEspecialista().getId()));
+        }
+
+        if (cita.getServicio() != null) {
+            if (cita.getServicio().getId() == null) {
+                throw new IllegalArgumentException("El servicio debe tener un ID válido para ser vinculado a la cita.");
+            }
+            // Asociar el servicio existente
+            cita.setServicio(entityManager.getReference(Servicio.class, cita.getServicio().getId()));
+        }
+
+        if (cita.getHoraInicio() != null) {
+            cita.setHoraInicio(normalizeTime(cita.getHoraInicio()));
+        }
+        if (cita.getHoraFinal() != null) {
+            cita.setHoraFinal(normalizeTime(cita.getHoraFinal()));
+            System.out.println(normalizeTime(cita.getHoraFinal()));
+        }
+
+        cita.setUpdateTs(ajustarFechaAEspana(cita.getUpdateTs()));
+
+        return citaRepository.save(cita);
+    }
+
+    public void softDeleteCitas(List<UUID> ids, String deletedBy) {
+        java.util.Date deleteTs = new java.util.Date();
+        citaRepository.softDeleteCitas(ids, deleteTs, deletedBy);
     }
 
     public List<Cita> getFilteredCitas(Date dia, Time horaInicio, Time horaFinal, UUID pacienteId, UUID especialistaId, UUID servicioId, Boolean pagado) {
@@ -200,16 +268,8 @@ public class CitaService {
 
     public void deleteLogicalDeletedCitas() { citaRepository.deleteLogicalDeletedCitas(); }
 
-    private Time convertirHora(String horaStr) {
-        if (horaStr == null || !horaStr.matches("\\d{2}:\\d{2}:\\d{2}")) {
-            throw new IllegalArgumentException("El formato de la hora no es válido. Use el formato 'HH:mm:ss'.");
-        }
-        try {
-            SimpleDateFormat formatoEntrada = new SimpleDateFormat("HH:mm:ss");
-            formatoEntrada.setLenient(false); // Validación estricta
-            return new Time(formatoEntrada.parse(horaStr).getTime());
-        } catch (ParseException e) {
-            throw new IllegalArgumentException("Error al analizar la hora. Asegúrese de usar el formato 'HH:mm:ss'.", e);
-        }
+    private Time normalizeTime(Time time) {
+        // Convertir a formato HH:mm:ss.0000000
+        return Time.valueOf(time.toLocalTime().withNano(0));
     }
 }

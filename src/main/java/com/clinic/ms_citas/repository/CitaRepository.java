@@ -53,6 +53,15 @@ public interface CitaRepository extends JpaRepository<Cita, UUID> {
     @Modifying
     @Transactional
     @Query(value = """
+    UPDATE CLINIC_CITA
+    SET DELETE_TS = :deleteTs, DELETED_BY = :deletedBy
+    WHERE ID IN (:ids)
+""", nativeQuery = true)
+    void softDeleteCitas(@Param("ids") List<UUID> ids, @Param("deleteTs") java.util.Date deleteTs, @Param("deletedBy") String deletedBy);
+
+    @Modifying
+    @Transactional
+    @Query(value = """
         DELETE FROM CLINIC_CITA
         WHERE DELETE_TS IS NOT NULL
     """, nativeQuery = true)
