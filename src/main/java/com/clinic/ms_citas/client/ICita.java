@@ -23,6 +23,12 @@ public interface ICita {
     @GetMapping
     public ResponseEntity<List<Cita>> getAllCitas();
 
+    @PostMapping("/calendario")
+    public ResponseEntity<List<Cita>> getCitasCalendario(
+            @RequestHeader(value = "Tracking-Id") String trackingId,
+            @RequestBody Map<String, Object> filtros
+    );
+
     @PostMapping("/filtro")
     public ResponseEntity<List<Cita>> findCitasByFiltro(
             @RequestHeader(value = "Tracking-Id") String trackingId,

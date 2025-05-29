@@ -35,6 +35,17 @@ public class CitaController implements ICita {
     }
 
     @Override
+    public ResponseEntity<List<Cita>> getCitasCalendario(
+            String trackingId,
+            Map<String, Object> filtros
+    ) {
+        return ResponseEntity.status(HttpStatus.OK).body(citaService.getCitasCalendario(
+                trackingId,
+                filtros
+        ));
+    }
+
+    @Override
     public ResponseEntity<List<Cita>> findCitasByFiltro(
             String trackingId,
             int page,
