@@ -58,8 +58,6 @@ public class CitaService {
                 "SELECT c.* " +
                         "FROM CLINIC_CITA c " +
                         "LEFT JOIN CLINIC_ESPECIALISTA e ON c.ESPECIALISTA_ID = e.ID " +
-                        "LEFT JOIN CLINIC_PACIENTE p ON c.PACIENTE_ID = p.ID " +
-                        "LEFT JOIN CLINIC_SERVICIO s ON c.SERVICIO_ID = s.ID " +
                         "WHERE 1 = 1 AND c.DELETE_TS IS NULL");
 
         Map<String, Object> paramsQuery = new HashMap<>();
@@ -72,6 +70,11 @@ public class CitaService {
         if (filtros.containsKey("endDate")) {
             sql.append(" AND c.DIA <= :endDate");
             paramsQuery.put("endDate", filtros.get("endDate"));
+        }
+
+        if (filtros.containsKey("especialista")) {
+            sql.append(" AND c.ESPECIALISTA_ID = :especialista");
+            paramsQuery.put("especialista", filtros.get("especialista"));
         }
 
         Query query = entityManager.createNativeQuery(sql.toString(), Cita.class);
