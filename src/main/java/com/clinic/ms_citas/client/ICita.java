@@ -69,10 +69,6 @@ public interface ICita {
     @PostMapping("/check-solapamiento")
     public ResponseEntity<Boolean> checkSolapamiento(
             @RequestHeader(value = "Tracking-Id") String trackingId,
-            @RequestBody Cita cita
+            @RequestBody String jsonCita
     );
-
-
-    @GetMapping("/solapamiento")
-    public ResponseEntity<Boolean> testSolapamiento();
 }

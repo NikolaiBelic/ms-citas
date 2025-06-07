@@ -68,35 +68,31 @@ public interface CitaRepository extends JpaRepository<Cita, UUID> {
     void deleteLogicalDeletedCitas();
 
     @Query(value = """
-    SELECT CASE WHEN COUNT(*) > 0 THEN CAST(1 AS BIT) ELSE CAST(0 AS BIT) END
-    FROM CLINIC_CITA c
-    WHERE c.DIA = :dia
-      AND c.especialista_id = :especialistaId
-      AND c.HORA_INICIO < :horaFinal
-      AND c.HORA_FINAL > :horaInicio
+      SELECT CASE WHEN EXISTS (
+        SELECT 1 FROM CLINIC_CITA c
+        WHERE c.DIA = :dia
+          AND c.especialista_id = :especialistaId
+          AND c.ID <> :citaId
+          AND CONVERT(TIME, c.HORA_INICIO) < CONVERT(TIME, :horaFinal)
+          AND CONVERT(TIME, c.HORA_FINAL) > CONVERT(TIME, :horaInicio)
+          AND c.DELETE_TS IS NULL
+    ) THEN CAST(1 AS BIT) ELSE CAST(0 AS BIT) END
 """, nativeQuery = true)
-    boolean checkSolapamientoNuevo(
-            @Param("dia") Date fecha,
-            @Param("horaInicio") Time horaInicio,
-            @Param("horaFinal") Time horaFinal,
-            @Param("especialistaId") UUID especialistaId
-    );
-
-    @Query(value = """
-    SELECT CASE WHEN COUNT(*) > 0 THEN CAST(1 AS BIT) ELSE CAST(0 AS BIT) END
-    FROM CLINIC_CITA c
-    WHERE c.DIA = :dia
-      AND c.especialista_id = :especialistaId
-      AND c.ID <> :citaId
-      AND CAST(c.HORA_INICIO AS datetime2) < :horaFinal
-      AND CAST(c.HORA_FINAL AS datetime2) > :horaInicio
-""", nativeQuery = true)
-    boolean checkSolapamientoExistente(
-            @Param("dia") Date fecha,
+    boolean checkSolapamiento(
+            @Param("dia") Date dia,
             @Param("horaInicio") Time horaInicio,
             @Param("horaFinal") Time horaFinal,
             @Param("especialistaId") UUID especialistaId,
             @Param("citaId") UUID citaId
     );
 
+    @Query(value = """
+    SELECT CASE WHEN COUNT(*) > 0 THEN CAST(1 AS BIT) ELSE CAST(0 AS BIT) END
+    FROM CLINIC_CITA c
+    WHERE c.DIA = '2025-06-06'
+      AND c.especialista_id = '92495d52-71b5-560d-71f1-f686e54d8923'
+      AND CAST(c.HORA_INICIO AS DATETIME) < CAST('14:00:00' AS DATETIME)
+      AND CAST(c.HORA_FINAL AS DATETIME) > CAST('13:00:00' AS DATETIME)
+    """, nativeQuery = true)
+    boolean checkSolapamientoFijo();
 }

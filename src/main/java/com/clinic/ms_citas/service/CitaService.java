@@ -11,6 +11,8 @@ import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
 import jakarta.transaction.Transactional;
 import org.hibernate.Hibernate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -18,6 +20,9 @@ import java.sql.Date;
 import java.sql.Time;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.ZoneId;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,6 +33,10 @@ import static com.clinic.ms_citas.utils.DateFormat.ajustarFechaAEspana;
 @Service
 public class CitaService {
 
+    private static final Time HORA_APERTURA = Time.valueOf("10:00:00");
+    private static final Time HORA_CIERRE = Time.valueOf("20:00:00");
+
+    private static final Logger log = LoggerFactory.getLogger(CitaService.class);
     @Autowired
     private CitaRepository citaRepository;
 
@@ -219,6 +228,8 @@ public class CitaService {
     @Transactional
     public Cita createCita(Cita cita) {
 
+        validarHorarioCita(cita); // Validaciones comunes
+        validarDisponibilidadEspecialista(cita);
 
         if (cita.getPaciente() != null) {
             if (cita.getPaciente().getId() == null) {
@@ -261,6 +272,10 @@ public class CitaService {
 
     @Transactional
     public Cita updateCita(Cita cita) {
+
+        validarHorarioCita(cita); // Validaciones comunes
+        validarDisponibilidadEspecialista(cita);
+
         if (cita.getPaciente() != null) {
             if (cita.getPaciente().getId() == null) {
                 throw new IllegalArgumentException("El paciente debe tener un ID válido para ser vinculado a la cita.");
@@ -311,29 +326,62 @@ public class CitaService {
 
 
     public boolean checkSolapamiento(Cita cita) {
+        // 1. Conversión segura de fechas
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm:ss");
+
         Date sqlDate = new Date(cita.getDia().getTime());
-        Time horaInicio = new Time(cita.getHoraInicio().getTime());
-        Time horaFinal = new Time(cita.getHoraFinal().getTime());
+        Time sqlTimeInicio = new Time(cita.getHoraInicio().getTime());
+        Time sqlTimeFinal = new Time(cita.getHoraFinal().getTime());
+
         UUID especialistaId = cita.getEspecialista().getId();
         UUID citaId = cita.getId();
 
-        if (citaId == null) {
-            return citaRepository.checkSolapamientoNuevo(sqlDate, horaInicio, horaFinal, especialistaId);
-        } else {
-            return citaRepository.checkSolapamientoExistente(sqlDate, horaInicio, horaFinal, especialistaId, citaId);
+        // 2. Logging correcto
+        log.info("Parámetros enviados a consulta:");
+        log.info("Dia: {}", dateFormat.format(sqlDate));
+        log.info("Hora inicio: {}", timeFormat.format(sqlTimeInicio));
+        log.info("Hora final: {}", timeFormat.format(sqlTimeFinal));
+        log.info("Especialista ID: {}", especialistaId.toString());
+
+        return citaRepository.checkSolapamiento(
+                sqlDate,
+                sqlTimeInicio,
+                sqlTimeFinal,
+                especialistaId,
+                citaId
+        );
+    }
+
+    private void validarHorarioCita(Cita cita) {
+        // Normalizar horas primero
+        Time horaInicio = normalizeTime(cita.getHoraInicio());
+        Time horaFinal = normalizeTime(cita.getHoraFinal());
+
+        // 1. Validar que horaInicio < horaFinal
+        if (horaInicio.after(horaFinal)) {
+            throw new IllegalArgumentException("La hora de inicio no puede ser posterior a la hora final");
+        }
+
+        // 2. Validar horario laboral (10:00 - 20:00)
+        if (horaInicio.before(HORA_APERTURA) || horaFinal.after(HORA_CIERRE)) {
+            throw new IllegalArgumentException(
+                    String.format("Las citas deben estar entre %s y %s",
+                            HORA_APERTURA, HORA_CIERRE));
+        }
+
+        // 3. Validar duración mínima (opcional)
+        long duracionMinutos = (horaFinal.getTime() - horaInicio.getTime()) / (60 * 1000);
+        if (duracionMinutos < 15) {
+            throw new IllegalArgumentException("La cita debe tener al menos 15 minutos de duración");
         }
     }
 
-
-    public boolean testConsultaManual() {
-        java.sql.Date dia = java.sql.Date.valueOf("2025-06-06");
-        java.sql.Time horaInicio = java.sql.Time.valueOf("13:00:00");
-        java.sql.Time horaFinal = java.sql.Time.valueOf("14:00:00");
-        UUID especialistaId = UUID.fromString("92495D52-71B5-560D-71F1-F686E54D8923");
-
-        return citaRepository.checkSolapamientoNuevo(dia, horaInicio, horaFinal, especialistaId);
+    private void validarDisponibilidadEspecialista(Cita cita) {
+        if (checkSolapamiento(cita)) {
+            throw new IllegalStateException("El especialista ya tiene una cita en ese horario");
+        }
     }
-
 
     private Time normalizeTime(Time time) {
         // Convertir a formato HH:mm:ss.0000000

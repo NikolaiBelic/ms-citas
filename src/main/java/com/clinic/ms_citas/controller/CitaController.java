@@ -102,14 +102,10 @@ public class CitaController implements ICita {
     @Override
     public ResponseEntity<Boolean> checkSolapamiento(
             String trackingId,
-            Cita cita
+            String jsonCita
     ) {
+        Cita cita = gson.fromJson(jsonCita, Cita.class);
         boolean existeSolapamiento = citaService.checkSolapamiento(cita);
         return ResponseEntity.ok(existeSolapamiento);
-    }
-    @Override
-    public ResponseEntity<Boolean> testSolapamiento() {
-        boolean resultado = citaService.testConsultaManual();
-        return ResponseEntity.ok(resultado);
     }
 }
