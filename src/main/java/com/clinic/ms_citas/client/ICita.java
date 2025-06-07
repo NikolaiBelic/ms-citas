@@ -65,4 +65,14 @@ public interface ICita {
 
     @DeleteMapping("/delete-logical")
     public ResponseEntity<Void> deleteLogicalDeletedCitas();
+
+    @PostMapping("/check-solapamiento")
+    public ResponseEntity<Boolean> checkSolapamiento(
+            @RequestHeader(value = "Tracking-Id") String trackingId,
+            @RequestBody Cita cita
+    );
+
+
+    @GetMapping("/solapamiento")
+    public ResponseEntity<Boolean> testSolapamiento();
 }

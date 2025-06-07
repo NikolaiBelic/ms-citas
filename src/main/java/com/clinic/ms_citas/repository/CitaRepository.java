@@ -66,4 +66,37 @@ public interface CitaRepository extends JpaRepository<Cita, UUID> {
         WHERE DELETE_TS IS NOT NULL
     """, nativeQuery = true)
     void deleteLogicalDeletedCitas();
+
+    @Query(value = """
+    SELECT CASE WHEN COUNT(*) > 0 THEN CAST(1 AS BIT) ELSE CAST(0 AS BIT) END
+    FROM CLINIC_CITA c
+    WHERE c.DIA = :dia
+      AND c.especialista_id = :especialistaId
+      AND c.HORA_INICIO < :horaFinal
+      AND c.HORA_FINAL > :horaInicio
+""", nativeQuery = true)
+    boolean checkSolapamientoNuevo(
+            @Param("dia") Date fecha,
+            @Param("horaInicio") Time horaInicio,
+            @Param("horaFinal") Time horaFinal,
+            @Param("especialistaId") UUID especialistaId
+    );
+
+    @Query(value = """
+    SELECT CASE WHEN COUNT(*) > 0 THEN CAST(1 AS BIT) ELSE CAST(0 AS BIT) END
+    FROM CLINIC_CITA c
+    WHERE c.DIA = :dia
+      AND c.especialista_id = :especialistaId
+      AND c.ID <> :citaId
+      AND CAST(c.HORA_INICIO AS datetime2) < :horaFinal
+      AND CAST(c.HORA_FINAL AS datetime2) > :horaInicio
+""", nativeQuery = true)
+    boolean checkSolapamientoExistente(
+            @Param("dia") Date fecha,
+            @Param("horaInicio") Time horaInicio,
+            @Param("horaFinal") Time horaFinal,
+            @Param("especialistaId") UUID especialistaId,
+            @Param("citaId") UUID citaId
+    );
+
 }

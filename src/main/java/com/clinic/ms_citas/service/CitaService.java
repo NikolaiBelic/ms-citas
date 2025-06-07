@@ -111,7 +111,7 @@ public class CitaService {
         }
 
         if (filtros.containsKey("horaInicio")) {
-            sql.append(" AND c.HORA_INICIO = :horaInicio");
+            sql.append(" AND c.HORA_INICIO >= :horaInicio");
             paramsQuery.put("horaInicio", filtros.get("horaInicio"));
         }
 
@@ -308,6 +308,32 @@ public class CitaService {
     }
 
     public void deleteLogicalDeletedCitas() { citaRepository.deleteLogicalDeletedCitas(); }
+
+
+    public boolean checkSolapamiento(Cita cita) {
+        Date sqlDate = new Date(cita.getDia().getTime());
+        Time horaInicio = new Time(cita.getHoraInicio().getTime());
+        Time horaFinal = new Time(cita.getHoraFinal().getTime());
+        UUID especialistaId = cita.getEspecialista().getId();
+        UUID citaId = cita.getId();
+
+        if (citaId == null) {
+            return citaRepository.checkSolapamientoNuevo(sqlDate, horaInicio, horaFinal, especialistaId);
+        } else {
+            return citaRepository.checkSolapamientoExistente(sqlDate, horaInicio, horaFinal, especialistaId, citaId);
+        }
+    }
+
+
+    public boolean testConsultaManual() {
+        java.sql.Date dia = java.sql.Date.valueOf("2025-06-06");
+        java.sql.Time horaInicio = java.sql.Time.valueOf("13:00:00");
+        java.sql.Time horaFinal = java.sql.Time.valueOf("14:00:00");
+        UUID especialistaId = UUID.fromString("92495D52-71B5-560D-71F1-F686E54D8923");
+
+        return citaRepository.checkSolapamientoNuevo(dia, horaInicio, horaFinal, especialistaId);
+    }
+
 
     private Time normalizeTime(Time time) {
         // Convertir a formato HH:mm:ss.0000000
