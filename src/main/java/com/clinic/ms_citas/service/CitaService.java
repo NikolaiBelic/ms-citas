@@ -125,7 +125,7 @@ public class CitaService {
         }
 
         if (filtros.containsKey("horaFinal")) {
-            sql.append(" AND c.HORA_FINAL = :horaFinal");
+            sql.append(" AND c.HORA_FINAL <= :horaFinal");
             paramsQuery.put("horaFinal", filtros.get("horaFinal"));
         }
 
