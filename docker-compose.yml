@@ -3,10 +3,8 @@ version: '3.8'
 services:
   ms-citas:
     build: .
-    image: ms-citas  # ⭐ Nombre de imagen personalizado (evita el prefijo automático)
-    container_name: ms-citas  # ⭐ Nombre del contenedor personalizado
-    networks:
-      - cuba-network
+    image: ms-citas
+    container_name: ms-citas
     ports:
       - "8081:8080"
     environment:
@@ -14,7 +12,12 @@ services:
       - DB_MSSQL_DATABASE=clinic
       - DB_MSSQL_USER=SA
       - DB_MSSQL_PASSWORD=Elalmendro.33
+    networks:
+      cuba-network:
+        aliases:
+          - ms-citas
 
 networks:
   cuba-network:
     external: true
+    name: cuba-network  # Especifica explícitamente el nombre
