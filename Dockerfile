@@ -1,13 +1,14 @@
-# Fase de construcción (con Java 17)
-FROM eclipse-temurin:17-jdk-jammy as builder
+# Usa la imagen de Java 17 (como en tu entorno local)
+FROM eclipse-temurin:17-jdk-jammy
 
+# Directorio de trabajo
 WORKDIR /app
-COPY . .
 
-# Ejecuta Gradle DENTRO del contenedor (con Java 17)
-RUN ./gradlew clean bootJar
+# Copia el JAR generado LOCALMENTE (ms-citas-0.0.1-SNAPSHOT.jar)
+COPY build/libs/ms-citas-0.0.1-SNAPSHOT.jar app.jar
 
-COPY --from=builder /app/build/libs/ms-citas-0.0.1-SNAPSHOT.jar app.jar
-
+# Puerto expuesto (ajusta si tu app usa otro)
 EXPOSE 8080
+
+# Comando de arranque
 ENTRYPOINT ["java", "-jar", "app.jar"]
