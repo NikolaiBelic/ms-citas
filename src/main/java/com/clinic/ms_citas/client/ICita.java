@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-@RequestMapping("/citas")
+@RequestMapping("/api/rest/citas")
 public interface ICita {
 
     /**
