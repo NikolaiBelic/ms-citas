@@ -108,4 +108,9 @@ public class CitaController implements ICita {
         boolean existeSolapamiento = citaService.checkSolapamiento(cita);
         return ResponseEntity.ok(existeSolapamiento);
     }
+
+    @Override
+    public ResponseEntity<String> saludar() {
+        return ResponseEntity.ok("¡La aplicación funciona correctamente!");
+    }
 }
