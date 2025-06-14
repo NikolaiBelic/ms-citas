@@ -3,6 +3,8 @@ version: '3.8'
 services:
   ms-citas:
     build: .
+    image: ms-citas  # ⭐ Nombre de imagen personalizado (evita el prefijo automático)
+    container_name: ms-citas  # ⭐ Nombre del contenedor personalizado
     networks:
       - cuba-network
     ports:
