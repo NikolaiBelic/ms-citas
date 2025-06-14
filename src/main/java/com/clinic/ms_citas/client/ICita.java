@@ -71,4 +71,9 @@ public interface ICita {
             @RequestHeader(value = "Tracking-Id") String trackingId,
             @RequestBody String jsonCita
     );
+
+    @GetMapping("/saludo")
+    public default String saludar() {
+        return "¡La aplicación funciona!";
+    }
 }
