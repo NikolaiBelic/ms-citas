@@ -13,8 +13,6 @@ services:
       - DB_MSSQL_DATABASE=clinic
       - DB_MSSQL_USER=SA
       - DB_MSSQL_PASSWORD=Elalmendro.33
-    depends_on:
-      - sqlserver-dev
 
 networks:
   cuba-network:
