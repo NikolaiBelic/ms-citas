@@ -72,8 +72,7 @@ public interface ICita {
             @RequestBody String jsonCita
     );
 
-    @GetMapping("/saludo")
     public default String saludar() {
-        return "¡La aplicación funciona!";
+        return "¡La aplicación funciona correctamente!";
     }
 }
